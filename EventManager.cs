@@ -8,8 +8,8 @@ namespace csharp_days
     internal class CsvHeaders
     {
         public DateOnly date { get; set; }
-        public string category { get; set; }
-        public string description { get; set; }
+        public string category { get; set; } = string.Empty;
+        public string description { get; set; } = string.Empty;
     }
 
     internal class EventManager
@@ -60,16 +60,13 @@ namespace csharp_days
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
+                // Allow headers to be in any case
                 PrepareHeaderForMatch = args => args.Header.ToLower(),
             };
 
             using (var reader = new StreamReader(eventsPath))
             using (var csv = new CsvReader(reader, config))
             {
-
-                csv.Read();
-                csv.ReadHeader();
-
                 while (csv.Read())
                 {
                     try
@@ -88,6 +85,7 @@ namespace csharp_days
                         {
                             Console.Error.WriteLine(re.Context.Parser.RawRecord);
                         }
+                        // Skip the line with an error and continue reading
                         continue;
                     }
                 }
