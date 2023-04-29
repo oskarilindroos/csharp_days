@@ -1,35 +1,33 @@
 ﻿using NodaTime;
 using NodaTime.Extensions;
+using System;
+using System.CommandLine;
 
 namespace csharp_days
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             var eventManager = EventManager.Instance;
 
             string? eventsPath = eventManager.getEventsPath();
-            if (eventsPath == null)
-            {
-                return;
-            }
-
+   
             eventManager.loadEvents(eventsPath);
 
-            var events = eventManager.getEvents();
+            var rootCommand = new RootCommand();
 
-            var event1 = new Event(new LocalDate(2023, 04, 04), "test", "test");
-            events.Add(event1);
+            // Subcommands
+            var listCommand = new Command("list", "List events");
+            var addCommand = new Command("add", "Add an event");
+            var deleteCommand = new Command("delete", "Delete an event");
 
-            eventManager.saveEvents(eventsPath);
+            rootCommand.AddCommand(listCommand);
+            rootCommand.AddCommand(addCommand);
+            rootCommand.AddCommand(deleteCommand);
 
-            eventManager.SortEventsByDate();
-            foreach (var e in events)
-            {
-                Period difference = Period.Between(e.Date, DateTime.Now.ToLocalDateTime().Date);
-                Console.WriteLine($"{e} -- {e.getDifferenceString(difference)}");
-            }
+
+            return await rootCommand.InvokeAsync(args);
         }
     }
 }
