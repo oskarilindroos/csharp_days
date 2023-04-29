@@ -94,17 +94,16 @@ namespace csharp_days
 
         public void saveEvents(string eventsPath)
         {
-            // Use a custom culture to ensure the date is always saved in ISO 8601 format
-            var customCulture = new CultureInfo("en-US")
-            {
-                DateTimeFormat =
-                {
-                    ShortDatePattern = "yyyy-MM-dd",
-                }
-            };
+            // Sort the events by date before saving
+            SortEventsByDate();
 
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                // Allow headers to be in any case
+                PrepareHeaderForMatch = args => args.Header.ToLower(),
+            };
             using (var writer = new StreamWriter(eventsPath))
-            using (var csv = new CsvWriter(writer, customCulture))
+            using (var csv = new CsvWriter(writer, config))
             {
                 csv.WriteHeader<CsvHeaders>();
                 foreach (var e in events)
