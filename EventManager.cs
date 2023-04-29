@@ -1,11 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using NodaTime.Extensions;
+using System.Globalization;
 
 namespace csharp_days
 {
+    internal class CsvHeaders
+    {
+        public DateOnly date { get; set; }
+        public string category { get; set; }
+        public string description { get; set; }
+    }
+
     internal class EventManager
     {
         private static readonly EventManager instance = new EventManager();
@@ -13,6 +19,16 @@ namespace csharp_days
         public static EventManager Instance => instance;
 
         private List<Event> events;
+
+        public List<Event> getEvents()
+        {
+            return events;
+        }
+
+        public EventManager()
+        {
+            events = new List<Event>();
+        }
 
         public string? getEventsPath()
         {
@@ -40,16 +56,49 @@ namespace csharp_days
             return eventsPath;
         }
 
-        public EventManager()
+        public void loadEvents(string eventsPath)
         {
-            events = new List<Event>();
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                PrepareHeaderForMatch = args => args.Header.ToLower(),
+            };
+
+            using (var reader = new StreamReader(eventsPath))
+            using (var csv = new CsvReader(reader, config))
+            {
+
+                csv.Read();
+                csv.ReadHeader();
+
+                while (csv.Read())
+                {
+                    try
+                    {
+                        var record = csv.GetRecord<CsvHeaders>()!;
+                        events.Add(new Event(record.date.ToLocalDate(), record.category, record.description));
+                    }
+                    catch (ReaderException re)
+                    {
+                        Console.Error.Write($"Invalid data on line {re.Context.Parser.Row}: ");
+                        if (re.InnerException != null)
+                        {
+                            Console.Error.WriteLine(re.InnerException.Message);
+                        }
+                        else
+                        {
+                            Console.Error.WriteLine(re.Context.Parser.RawRecord);
+                        }
+                        continue;
+                    }
+                }
+            }
         }
 
         public void SortEventsByDate()
         {
             events.Sort((e, other) => e.Date.CompareTo(other.Date));
         }
-       
+
 
     }
 }
