@@ -92,6 +92,33 @@ namespace csharp_days
             }
         }
 
+        public void saveEvents(string eventsPath)
+        {
+            // Sort the events by date before saving
+            SortEventsByDate();
+
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                // Allow headers to be in any case
+                PrepareHeaderForMatch = args => args.Header.ToLower(),
+            };
+            using (var writer = new StreamWriter(eventsPath))
+            using (var csv = new CsvWriter(writer, config))
+            {
+                csv.WriteHeader<CsvHeaders>();
+                foreach (var e in events)
+                {
+                    csv.NextRecord();
+                    csv.WriteRecord(new CsvHeaders
+                    {
+                        date = e.Date.ToDateOnly(),
+                        category = e.Category,
+                        description = e.Description
+                    });
+                }
+            }
+        }
+
         public void SortEventsByDate()
         {
             events.Sort((e, other) => e.Date.CompareTo(other.Date));

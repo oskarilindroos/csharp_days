@@ -17,10 +17,14 @@ namespace csharp_days
 
             eventManager.loadEvents(eventsPath);
 
-
             var events = eventManager.getEvents();
 
-            events.Sort((e, other) => e.Date.CompareTo(other.Date));
+            var event1 = new Event(new LocalDate(2023, 04, 04), "test", "test");
+            events.Add(event1);
+
+            eventManager.saveEvents(eventsPath);
+
+            eventManager.SortEventsByDate();
             foreach (var e in events)
             {
                 Period difference = Period.Between(e.Date, DateTime.Now.ToLocalDateTime().Date);
