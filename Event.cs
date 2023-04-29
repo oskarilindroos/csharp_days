@@ -11,14 +11,14 @@ namespace csharp_days
 
         public Event(LocalDate date, string category, string description)
         {
-           Description = description;
-           Category = category;
-           Date = date;
+            Description = description;
+            Category = category;
+            Date = date;
         }
 
         public override string ToString()
         {
-            return $"{Date.ToDateOnly().ToString()}: {Description} ({Category})";
+            return $"{Date.ToDateOnly()}: {Description} ({Category})";
         }
 
         public string getDifferenceString(Period p)
@@ -52,7 +52,8 @@ namespace csharp_days
             if (p.Days < 0 || p.Years < 0 || p.Months < 0)
             {
                 sb.Insert(0, "in ");
-            } else
+            }
+            else
             {
                 sb.Append("ago");
             }
