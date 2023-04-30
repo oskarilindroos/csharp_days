@@ -32,6 +32,8 @@ namespace csharp_days
 
             Option<bool> noCategoryOption = new("--no-category", "Filter by events with no category");
 
+            Option<bool> todayOption = new("--today", "Filter by events that are happening today");
+
             Option<bool> excludeOption = new("--exclude", "Exclude the specified categories (use with --categories)");
 
             // Subcommands
@@ -41,12 +43,13 @@ namespace csharp_days
                 excludeOption,
                 descriptionOption,
                 dateOption,
-                noCategoryOption
+                noCategoryOption,
+                todayOption,
             };
 
             Command addCommand = new("add", "Add an event");
 
-            Command deleteCommand = new("delete", "Delete an event");
+            Command deleteCommand = new("delete", "Delete events");
 
             rootCommand.Add(listCommand);
             rootCommand.Add(addCommand);
@@ -54,7 +57,7 @@ namespace csharp_days
 
             /** Subcommand handlers **/
             // List command handler
-            listCommand.SetHandler((categories, description, date, noCategory, exclude) =>
+            listCommand.SetHandler((categories, description, date, today, noCategory, exclude) =>
             {
                 if (categories.Length > 0)
                 {
@@ -80,8 +83,13 @@ namespace csharp_days
                     eventManager.FilterByDate(date);
                 }
 
+                if (today)
+                {
+                    eventManager.FilterByToday();
+                }
+
                 eventManager.PrintEvents();
-            }, categoriesOption, descriptionOption, dateOption, noCategoryOption, excludeOption);
+            }, categoriesOption, descriptionOption, dateOption, todayOption, noCategoryOption, excludeOption);
 
             // Add command handler
 
