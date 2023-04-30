@@ -23,7 +23,7 @@ namespace csharp_days
 
         public string getDifferenceString(Period p)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new();
 
             int years = Math.Abs(p.Years);
             int months = Math.Abs(p.Months);

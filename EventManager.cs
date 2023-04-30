@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
+using NodaTime;
 using NodaTime.Extensions;
 using System.Globalization;
 
@@ -14,26 +15,20 @@ namespace csharp_days
 
     internal class EventManager
     {
-        private static readonly EventManager instance = new EventManager();
+        private static readonly EventManager instance = new();
 
         public static EventManager Instance => instance;
 
         private List<Event> events;
 
-        public List<Event> getEvents()
-        {
-            return events;
-        }
+        public List<Event> getEvents() => events;
 
-        public EventManager()
-        {
-            events = new List<Event>();
-        }
+        private EventManager() => events = new List<Event>();
 
         public string? getEventsPath()
         {
             string userHomeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (string.IsNullOrWhiteSpace(userHomeDirectory))
+            if (string.IsNullOrEmpty(userHomeDirectory))
             {
                 Console.Error.WriteLine("Unable to determine user home directory");
                 return null;
@@ -58,14 +53,14 @@ namespace csharp_days
 
         public void loadEvents(string eventsPath)
         {
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            CsvConfiguration config = new(CultureInfo.InvariantCulture)
             {
                 // Allow headers to be in any case
                 PrepareHeaderForMatch = args => args.Header.ToLower(),
             };
 
-            using (var reader = new StreamReader(eventsPath))
-            using (var csv = new CsvReader(reader, config))
+            using (StreamReader reader = new(eventsPath))
+            using (CsvReader csv = new(reader, config))
             {
                 while (csv.Read())
                 {
@@ -94,19 +89,20 @@ namespace csharp_days
 
         public void saveEvents(string eventsPath)
         {
-            // Sort the events by date before saving
-            SortEventsByDate();
-
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            // Use a custom culture to ensure the date is always saved in ISO 8601 format
+            CultureInfo customCulture = new("en-US")
             {
-                // Allow headers to be in any case
-                PrepareHeaderForMatch = args => args.Header.ToLower(),
+                DateTimeFormat =
+                {
+                    ShortDatePattern = "yyyy-MM-dd",
+                }
             };
-            using (var writer = new StreamWriter(eventsPath))
-            using (var csv = new CsvWriter(writer, config))
+
+            using (StreamWriter writer = new(eventsPath))
+            using (CsvWriter csv = new(writer, customCulture))
             {
                 csv.WriteHeader<CsvHeaders>();
-                foreach (var e in events)
+                foreach (Event e in events)
                 {
                     csv.NextRecord();
                     csv.WriteRecord(new CsvHeaders
@@ -116,6 +112,42 @@ namespace csharp_days
                         description = e.Description
                     });
                 }
+            }
+        }
+
+        public void FilterByCategories(string[] categories, bool exclude)
+        {
+            if (exclude)
+            {
+                events = events.Where(e => !categories.Contains(e.Category)).ToList();
+            }
+            else
+            {
+                events = events.Where(e => categories.Contains(e.Category)).ToList();
+            }
+        }
+
+        public void FilterByNoCategory()
+        {
+            events = events.Where(e => string.IsNullOrWhiteSpace(e.Category)).ToList();
+        }
+
+        public void FilterByDescription(string description)
+        {
+            events = events.Where(e => e.Description.StartsWith(description)).ToList();
+        }
+
+        public void FilterByDate(DateOnly date)
+        {
+            events = events.Where(e => e.Date == date.ToLocalDate()).ToList();
+        }
+
+        public void PrintEvents()
+        {
+            foreach (Event e in events)
+            {
+                Period difference = Period.Between(e.Date, DateTime.Now.ToLocalDateTime().Date);
+                Console.WriteLine($"{e} -- {e.getDifferenceString(difference)}");
             }
         }
 
