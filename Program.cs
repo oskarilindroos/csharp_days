@@ -36,6 +36,8 @@ namespace csharp_days
 
             Option<DateOnly> beforeDateOption = new("--before-date", "Filter events that are happening before the specified date");
 
+            Option<DateOnly> afterDateOption = new("--after-date", "Filter events that are happening after the specified date");
+
             Option<bool> excludeOption = new("--exclude", "Exclude the specified categories (use with --categories)");
 
             // Subcommands
@@ -48,6 +50,7 @@ namespace csharp_days
                 noCategoryOption,
                 todayOption,
                 beforeDateOption,
+                afterDateOption,
             };
 
             Command addCommand = new("add", "Add an event");
@@ -60,7 +63,7 @@ namespace csharp_days
 
             /** Subcommand handlers **/
             // List command handler
-            listCommand.SetHandler((categories, description, date, beforeDate, today, noCategory, exclude) =>
+            listCommand.SetHandler((categories, description, date, beforeDate, afterDate, today, noCategory, exclude) =>
             {
                 if (categories.Length > 0)
                 {
@@ -86,9 +89,19 @@ namespace csharp_days
                     eventManager.FilterByDate(date);
                 }
 
-                if (beforeDate != DateOnly.MinValue)
+                if (beforeDate != DateOnly.MinValue && afterDate == DateOnly.MinValue)
                 {
                     eventManager.FilterByBeforeDate(beforeDate);
+                }
+
+                if (afterDate != DateOnly.MinValue && beforeDate == DateOnly.MinValue)
+                {
+                    eventManager.FilterByAfterDate(afterDate);
+                }
+
+                if (afterDate != DateOnly.MinValue && beforeDate != DateOnly.MinValue)
+                {
+                    eventManager.FilterByDateRange(afterDate, beforeDate);
                 }
 
                 if (today)
@@ -97,7 +110,7 @@ namespace csharp_days
                 }
 
                 eventManager.PrintEvents();
-            }, categoriesOption, descriptionOption, dateOption, beforeDateOption, todayOption, noCategoryOption, excludeOption);
+            }, categoriesOption, descriptionOption, dateOption, beforeDateOption, afterDateOption, todayOption, noCategoryOption, excludeOption);
 
             // Add command handler
 
