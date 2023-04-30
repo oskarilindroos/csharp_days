@@ -138,6 +138,11 @@ namespace csharp_days
             events = events.Where(e => e.Date == date.ToLocalDate()).ToList();
         }
 
+        public void FilterByBeforeDate(DateOnly beforeDate)
+        {
+            events = events.Where(e => e.Date < beforeDate.ToLocalDate()).ToList();
+        }
+
         public void FilterByToday()
         {
             events = events.Where(e => e.Date == DateTime.Now.ToLocalDateTime().Date).ToList();

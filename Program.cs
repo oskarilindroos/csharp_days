@@ -21,7 +21,7 @@ namespace csharp_days
             RootCommand rootCommand = new();
 
             // Options
-            Option<string[]> categoriesOption = new("--categories", "Filter by categories of the event (separate with whitespace or ,)")
+            Option<string[]> categoriesOption = new("--categories", "Filter by the categories of the event (separate with whitespace or ,)")
             {
                 AllowMultipleArgumentsPerToken = true
             };
@@ -30,9 +30,11 @@ namespace csharp_days
 
             Option<DateOnly> dateOption = new("--date", "Filter by the date of the event");
 
-            Option<bool> noCategoryOption = new("--no-category", "Filter by events with no category");
+            Option<bool> noCategoryOption = new("--no-category", "Filter events with no category");
 
-            Option<bool> todayOption = new("--today", "Filter by events that are happening today");
+            Option<bool> todayOption = new("--today", "Filter events that are happening today");
+
+            Option<DateOnly> beforeDateOption = new("--before-date", "Filter events that are happening before the specified date");
 
             Option<bool> excludeOption = new("--exclude", "Exclude the specified categories (use with --categories)");
 
@@ -45,6 +47,7 @@ namespace csharp_days
                 dateOption,
                 noCategoryOption,
                 todayOption,
+                beforeDateOption,
             };
 
             Command addCommand = new("add", "Add an event");
@@ -57,7 +60,7 @@ namespace csharp_days
 
             /** Subcommand handlers **/
             // List command handler
-            listCommand.SetHandler((categories, description, date, today, noCategory, exclude) =>
+            listCommand.SetHandler((categories, description, date, beforeDate, today, noCategory, exclude) =>
             {
                 if (categories.Length > 0)
                 {
@@ -83,13 +86,18 @@ namespace csharp_days
                     eventManager.FilterByDate(date);
                 }
 
+                if (beforeDate != DateOnly.MinValue)
+                {
+                    eventManager.FilterByBeforeDate(beforeDate);
+                }
+
                 if (today)
                 {
                     eventManager.FilterByToday();
                 }
 
                 eventManager.PrintEvents();
-            }, categoriesOption, descriptionOption, dateOption, todayOption, noCategoryOption, excludeOption);
+            }, categoriesOption, descriptionOption, dateOption, beforeDateOption, todayOption, noCategoryOption, excludeOption);
 
             // Add command handler
 
