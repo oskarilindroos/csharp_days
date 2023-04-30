@@ -18,10 +18,10 @@ namespace csharp_days
 
         public override string ToString()
         {
-            return $"{Date.ToDateOnly().ToString("yyy-MM-dd")}: {Description} ({Category})";
+            return $"{Date.ToDateOnly():yyy-MM-dd}: {Description} ({Category})";
         }
 
-        public string getDifferenceString(Period p)
+        public string GetDifferenceString(Period p)
         {
             StringBuilder sb = new();
 

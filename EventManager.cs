@@ -21,11 +21,11 @@ namespace csharp_days
 
         private List<Event> events;
 
-        public List<Event> getEvents() => events;
+        public List<Event> GetEvents() => events;
 
         private EventManager() => events = new List<Event>();
 
-        public string? getEventsPath()
+        public static string? GetEventsPath()
         {
             string userHomeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (string.IsNullOrEmpty(userHomeDirectory))
@@ -51,7 +51,7 @@ namespace csharp_days
             return eventsPath;
         }
 
-        public void loadEvents(string eventsPath)
+        public void LoadEvents(string eventsPath)
         {
             CsvConfiguration config = new(CultureInfo.InvariantCulture)
             {
@@ -59,35 +59,33 @@ namespace csharp_days
                 PrepareHeaderForMatch = args => args.Header.ToLower(),
             };
 
-            using (StreamReader reader = new(eventsPath))
-            using (CsvReader csv = new(reader, config))
+            using StreamReader reader = new(eventsPath);
+            using CsvReader csv = new(reader, config);
+            while (csv.Read())
             {
-                while (csv.Read())
+                try
                 {
-                    try
+                    var record = csv.GetRecord<CsvHeaders>()!;
+                    events.Add(new Event(record.date.ToLocalDate(), record.category, record.description));
+                }
+                catch (ReaderException re)
+                {
+                    Console.Error.Write($"Invalid data on line {re.Context.Parser.Row}: ");
+                    if (re.InnerException != null)
                     {
-                        var record = csv.GetRecord<CsvHeaders>()!;
-                        events.Add(new Event(record.date.ToLocalDate(), record.category, record.description));
+                        Console.Error.WriteLine(re.InnerException.Message);
                     }
-                    catch (ReaderException re)
+                    else
                     {
-                        Console.Error.Write($"Invalid data on line {re.Context.Parser.Row}: ");
-                        if (re.InnerException != null)
-                        {
-                            Console.Error.WriteLine(re.InnerException.Message);
-                        }
-                        else
-                        {
-                            Console.Error.WriteLine(re.Context.Parser.RawRecord);
-                        }
-                        // Skip the line with an error and continue reading
-                        continue;
+                        Console.Error.WriteLine(re.Context.Parser.RawRecord);
                     }
+                    // Skip the line with an error and continue reading
+                    continue;
                 }
             }
         }
 
-        public void saveEvents(string eventsPath)
+        public void SaveEvents(string eventsPath)
         {
             // Use a custom culture to ensure the date is always saved in ISO 8601 format
             CultureInfo customCulture = new("en-US")
@@ -98,20 +96,18 @@ namespace csharp_days
                 }
             };
 
-            using (StreamWriter writer = new(eventsPath))
-            using (CsvWriter csv = new(writer, customCulture))
+            using StreamWriter writer = new(eventsPath);
+            using CsvWriter csv = new(writer, customCulture);
+            csv.WriteHeader<CsvHeaders>();
+            foreach (Event e in events)
             {
-                csv.WriteHeader<CsvHeaders>();
-                foreach (Event e in events)
+                csv.NextRecord();
+                csv.WriteRecord(new CsvHeaders
                 {
-                    csv.NextRecord();
-                    csv.WriteRecord(new CsvHeaders
-                    {
-                        date = e.Date.ToDateOnly(),
-                        category = e.Category,
-                        description = e.Description
-                    });
-                }
+                    date = e.Date.ToDateOnly(),
+                    category = e.Category,
+                    description = e.Description
+                });
             }
         }
 
@@ -147,7 +143,7 @@ namespace csharp_days
             foreach (Event e in events)
             {
                 Period difference = Period.Between(e.Date, DateTime.Now.ToLocalDateTime().Date);
-                Console.WriteLine($"{e} -- {e.getDifferenceString(difference)}");
+                Console.WriteLine($"{e} -- {e.GetDifferenceString(difference)}");
             }
         }
 

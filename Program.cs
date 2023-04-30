@@ -9,14 +9,14 @@ namespace csharp_days
             var eventManager = EventManager.Instance; // get the singleton instance
 
             // Try to load the path to the events file
-            string? eventsPath = eventManager.getEventsPath();
+            string? eventsPath = EventManager.GetEventsPath();
             if (eventsPath == null)
             {
                 return 1;
             }
 
             // Load the events from the csv file
-            eventManager.loadEvents(eventsPath);
+            eventManager.LoadEvents(eventsPath);
 
             RootCommand rootCommand = new();
 
