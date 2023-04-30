@@ -1,28 +1,30 @@
-﻿using System.CommandLine;
-using System;
-using System.CommandLine;
-using System;
-using System.CommandLine;
-using System;
-using System.CommandLine;
-using System;
-using System.CommandLine;
-using System;
 using System.CommandLine;
 
+namespace csharp_days
+{
+    internal class Program
+    {
+        static async Task<int> Main(string[] args)
+        {
+            var eventManager = EventManager.Instance; // get the singleton instance
+
+            // Try to load the path to the events file
+            string? eventsPath = eventManager.getEventsPath();
             if (eventsPath == null)
             {
                 return 1;
             }
 
             // Load the events from the csv file
-{
-   
+            eventManager.loadEvents(eventsPath);
+
             RootCommand rootCommand = new();
-   
+
             // Options
-            Option<string[]> categoriesOption = new("--categories", "Filter by categories of the event (separate with whitespace or ,)");
-            categoriesOption.AllowMultipleArgumentsPerToken = true;
+            Option<string[]> categoriesOption = new("--categories", "Filter by categories of the event (separate with whitespace or ,)")
+            {
+                AllowMultipleArgumentsPerToken = true
+            };
 
             Option<string> descriptionOption = new("--description", "Filter by the description of the event");
 
@@ -46,10 +48,10 @@ using System.CommandLine;
 
             Command deleteCommand = new("delete", "Delete an event");
 
-            rootCommand.AddCommand(listCommand);
-            rootCommand.AddCommand(addCommand);
-            rootCommand.AddCommand(deleteCommand);
-            rootCommand.AddCommand(addCommand);
+            rootCommand.Add(listCommand);
+            rootCommand.Add(addCommand);
+            rootCommand.Add(deleteCommand);
+
             /** Subcommand handlers **/
             // List command handler
             listCommand.SetHandler((categories, description, date, noCategory, exclude) =>
@@ -86,23 +88,8 @@ using System.CommandLine;
 
             // Delete command handler
 
-            rootCommand.AddCommand(deleteCommand);
-            rootCommand.AddCommand(addCommand);
-            rootCommand.AddCommand(deleteCommand);
-            rootCommand.AddCommand(addCommand);
-            rootCommand.AddCommand(deleteCommand);
-            rootCommand.AddCommand(addCommand);
-            rootCommand.AddCommand(deleteCommand);
-            rootCommand.AddCommand(addCommand);
-            rootCommand.AddCommand(deleteCommand);
 
-
-            eventManager.SortEventsByDate();
-            foreach (var e in events)
-            {
-                Period difference = Period.Between(e.Date, DateTime.Now.ToLocalDateTime().Date);
-                Console.WriteLine($"{e} -- {e.getDifferenceString(difference)}");
-            }
+            return await rootCommand.InvokeAsync(args);
         }
     }
 }
