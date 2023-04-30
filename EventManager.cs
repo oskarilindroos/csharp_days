@@ -51,6 +51,8 @@ namespace csharp_days
             return eventsPath;
         }
 
+        public void AddEvent(Event e) => events.Add(e);
+
         public void LoadEvents(string eventsPath)
         {
             CsvConfiguration config = new(CultureInfo.InvariantCulture)
