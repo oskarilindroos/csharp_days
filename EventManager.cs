@@ -53,6 +53,8 @@ namespace csharp_days
 
         public void AddEvent(Event e) => events.Add(e);
 
+        public void DeleteEvent(Event e) => events.Remove(e);
+
         public void LoadEvents(string eventsPath)
         {
             CsvConfiguration config = new(CultureInfo.InvariantCulture)
@@ -67,8 +69,11 @@ namespace csharp_days
             {
                 try
                 {
-                    var record = csv.GetRecord<CsvHeaders>()!;
-                    events.Add(new Event(record.date.ToLocalDate(), record.category, record.description));
+                    var record = csv.GetRecord<CsvHeaders>();
+                    if (record != null)
+                    {
+                        events.Add(new Event(record.date.ToLocalDate(), record.category, record.description));
+                    }
                 }
                 catch (ReaderException re)
                 {
@@ -113,51 +118,51 @@ namespace csharp_days
             }
         }
 
-        public void FilterByCategories(string[] categories, bool exclude)
+        public List<Event> FilterByCategories(string[] categories, bool exclude)
         {
             if (exclude)
             {
-                events = events.Where(e => !categories.Contains(e.Category)).ToList();
+                return events.Where(e => !categories.Contains(e.Category)).ToList();
             }
             else
             {
-                events = events.Where(e => categories.Contains(e.Category)).ToList();
+                return events.Where(e => categories.Contains(e.Category)).ToList();
             }
         }
 
-        public void FilterByNoCategory()
+        public List<Event> FilterByNoCategory()
         {
-            events = events.Where(e => string.IsNullOrWhiteSpace(e.Category)).ToList();
+            return events.Where(e => string.IsNullOrWhiteSpace(e.Category)).ToList();
         }
 
-        public void FilterByDescription(string description)
+        public List<Event> FilterByDescription(string description)
         {
-            events = events.Where(e => e.Description.StartsWith(description)).ToList();
+            return events.Where(e => e.Description.StartsWith(description)).ToList();
         }
 
-        public void FilterByDate(DateOnly date)
+        public List<Event> FilterByDate(DateOnly date)
         {
-            events = events.Where(e => e.Date == date.ToLocalDate()).ToList();
+            return events.Where(e => e.Date == date.ToLocalDate()).ToList();
         }
 
-        public void FilterByBeforeDate(DateOnly beforeDate)
+        public List<Event> FilterByBeforeDate(DateOnly beforeDate)
         {
-            events = events.Where(e => e.Date < beforeDate.ToLocalDate()).ToList();
+            return events.Where(e => e.Date < beforeDate.ToLocalDate()).ToList();
         }
 
-        public void FilterByAfterDate(DateOnly afterDate)
+        public List<Event> FilterByAfterDate(DateOnly afterDate)
         {
-            events = events.Where(e => e.Date > afterDate.ToLocalDate()).ToList();
+            return events.Where(e => e.Date > afterDate.ToLocalDate()).ToList();
         }
 
-        public void FilterByDateRange(DateOnly startDate, DateOnly endDate)
+        public List<Event> FilterByDateRange(DateOnly startDate, DateOnly endDate)
         {
-            events = events.Where(e => e.Date > startDate.ToLocalDate() || e.Date < endDate.ToLocalDate()).ToList();
+            return events.Where(e => e.Date > startDate.ToLocalDate() || e.Date < endDate.ToLocalDate()).ToList();
         }
 
-        public void FilterByToday()
+        public List<Event> FilterByToday()
         {
-            events = events.Where(e => e.Date == DateTime.Now.ToLocalDateTime().Date).ToList();
+            return events.Where(e => e.Date == DateTime.Now.ToLocalDateTime().Date).ToList();
         }
 
         public void PrintEvents()
